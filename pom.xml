@@ -84,7 +84,11 @@
             <version>2.1.0</version>
         </dependency>
 
-
+        <!--加入缓存-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
 
     </dependencies>
 
