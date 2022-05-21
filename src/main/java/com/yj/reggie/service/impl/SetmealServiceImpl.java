@@ -14,6 +14,9 @@ import com.yj.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -222,17 +225,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
      */
     @Override
     public List<Setmeal> list(Setmeal setmeal) {
-        //动态构造key
-        String key = "setmeal_" + setmeal.getCategoryId() + "_" + setmeal.getStatus();//dish_1397844391040167938_1
 
-        //先从redis中获取缓存数据
-        List<Setmeal> list = (List<Setmeal>) redisTemplate.opsForValue().get(key);
-        if(list != null){
-            //如果存在，直接返回，无需查询数据库
-            return list;
-        }
-
-        //如果不存在，则查询数据库
         //构造查询条件，按照分类id查找套餐
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(setmeal.getCategoryId() != null,Setmeal::getCategoryId,setmeal.getCategoryId());
@@ -241,9 +234,6 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         queryWrapper.orderByDesc(Setmeal::getUpdateTime);
         //执行查询
         List<Setmeal> setmealList = this.list(queryWrapper);
-
-        //将查询到的套餐数据缓存到Redis并设置过期时间
-        redisTemplate.opsForValue().set(key,setmealList,60, TimeUnit.MINUTES);
 
         return setmealList;
 
