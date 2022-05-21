@@ -1,21 +1,19 @@
 package com.yj.reggie.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yj.reggie.common.R;
-import com.yj.reggie.dto.DishDto;
 import com.yj.reggie.dto.SetmealDto;
 import com.yj.reggie.entity.Dish;
 import com.yj.reggie.entity.Setmeal;
-
-import com.yj.reggie.entity.SetmealDish;
 import com.yj.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * 套餐管理
@@ -28,15 +26,20 @@ public class SetmealController {
     @Autowired
     private SetmealService setmealService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     /**
      * 新增套餐
      * @param setmealDto
      */
+    @CacheEvict(value = "setmealCache",key ="'setmeal_' + #setmealDto.getCategoryId() + '_1'") //删除套餐对应分类下的所有套餐缓存
     @PostMapping
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("新增套餐信息:{}",setmealDto);
         setmealService.saveWithDish(setmealDto);
+
         return R.success("新增套餐成功");
     }
 
@@ -57,6 +60,7 @@ public class SetmealController {
      * 对套餐批量或者是单个 进行停售或者是起售
      * @return
      */
+    @CacheEvict(value = "setmealCache",allEntries = true) //删除setmealCache这个缓存空间里所有数据
     @PostMapping("/status/{status}")
     public R<String> updateStatus(@PathVariable int status, @RequestParam("ids") Long[] id) {
         log.info("status:{}", status);
@@ -93,10 +97,12 @@ public class SetmealController {
      * @param setmealDto
      * @return
      */
+    @CacheEvict(value = "setmealCache",key ="'setmeal_' + #setmealDto.getCategoryId() + '_1'") //删除套餐对应分类下的所有套餐缓存
     @PutMapping
     public R<String> update(@RequestBody SetmealDto setmealDto) {
         log.info(setmealDto.toString());
         setmealService.updateWithDish(setmealDto);
+
         return R.success("套餐修改成功");
     }
 
@@ -105,6 +111,7 @@ public class SetmealController {
      * @param setmeal
      * @return
      */
+    @Cacheable(value = "setmealCache", key = "'setmeal_' + #setmeal.categoryId + '_' + #setmeal.status")
     @GetMapping("/list")
     public R<List<Setmeal>> list(Setmeal setmeal) {
         List<Setmeal> list = setmealService.list(setmeal);

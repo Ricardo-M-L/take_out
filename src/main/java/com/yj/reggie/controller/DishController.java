@@ -14,10 +14,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 菜品管理
@@ -30,6 +32,8 @@ public class DishController {
     @Autowired
     private DishService dishService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 新增菜品
@@ -40,6 +44,15 @@ public class DishController {
     public R<String> save(@RequestBody DishDto dishDto) {
         log.info(dishDto.toString());
         dishService.saveWithFlavor(dishDto);
+
+        //清理所有菜品的缓存数据
+      /*  Set keys = redisTemplate.keys("dish_*");//获取所有以dish_xxx开头的key
+        redisTemplate.delete(keys);//删除这些key*/
+
+        //清理某个分类下面的菜品缓存数据
+        String key = "dish_" + dishDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
+
         return R.success("新增菜品成功");
     }
 
@@ -65,6 +78,7 @@ public class DishController {
         log.info("status:{}", status);
         log.info("ids:{}", id);
         dishService.updateStatus(status, id);
+
         return R.success("售卖状态修改成功");
     }
 
@@ -99,6 +113,15 @@ public class DishController {
     public R<String> update(@RequestBody DishDto dishDto) {
         log.info(dishDto.toString());
         dishService.updateWithFlavor(dishDto);
+
+        //清理所有菜品的缓存数据
+        //Set keys = redisTemplate.keys("dish_*");//获取所有以dish_xxx开头的key
+        //redisTemplate.delete(keys);//删除这些key
+
+        //清理某个分类下面的菜品缓存数据
+        String key = "dish_" + dishDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
+
         return R.success("修改菜品成功");
     }
 

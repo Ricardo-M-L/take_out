@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yj.reggie.common.CustomException;
-import com.yj.reggie.dto.DishDto;
 import com.yj.reggie.dto.SetmealDto;
 import com.yj.reggie.entity.*;
 import com.yj.reggie.mapper.SetmealMapper;
@@ -15,12 +14,17 @@ import com.yj.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -35,6 +39,9 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
     @Autowired
     private DishService dishService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 新增套餐，同时需要保存套餐和菜品的关联关系
@@ -120,6 +127,14 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
             if (setmeal != null){
                 setmeal.setStatus(status);
                 this.updateById(setmeal);
+
+                //清理所有套餐的缓存数据
+                //Set keys = redisTemplate.keys("setmeal_*"); //获取所有以dish_xxx开头的key
+                //redisTemplate.delete(keys); //删除这些key
+
+                //清理某个分类下面的套餐缓存数据
+                String key = "setmeal_" + setmeal.getCategoryId() + "_1";
+                redisTemplate.delete(key);
             }
         }
     }
@@ -210,6 +225,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
      */
     @Override
     public List<Setmeal> list(Setmeal setmeal) {
+
         //构造查询条件，按照分类id查找套餐
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(setmeal.getCategoryId() != null,Setmeal::getCategoryId,setmeal.getCategoryId());
@@ -218,6 +234,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         queryWrapper.orderByDesc(Setmeal::getUpdateTime);
         //执行查询
         List<Setmeal> setmealList = this.list(queryWrapper);
+
         return setmealList;
 
 
