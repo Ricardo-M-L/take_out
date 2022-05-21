@@ -1,21 +1,17 @@
 package com.yj.reggie.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yj.reggie.common.R;
-import com.yj.reggie.dto.DishDto;
 import com.yj.reggie.dto.SetmealDto;
 import com.yj.reggie.entity.Dish;
 import com.yj.reggie.entity.Setmeal;
-
-import com.yj.reggie.entity.SetmealDish;
 import com.yj.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * 套餐管理
@@ -28,6 +24,9 @@ public class SetmealController {
     @Autowired
     private SetmealService setmealService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     /**
      * 新增套餐
@@ -37,6 +36,14 @@ public class SetmealController {
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("新增套餐信息:{}",setmealDto);
         setmealService.saveWithDish(setmealDto);
+
+        //清理所有套餐的缓存数据
+        //Set keys = redisTemplate.keys("setmeal_*"); //获取所有以dish_xxx开头的key
+        //redisTemplate.delete(keys); //删除这些key
+
+        //清理某个分类下面的套餐缓存数据
+        String key = "setmeal_" + setmealDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
         return R.success("新增套餐成功");
     }
 
@@ -97,6 +104,15 @@ public class SetmealController {
     public R<String> update(@RequestBody SetmealDto setmealDto) {
         log.info(setmealDto.toString());
         setmealService.updateWithDish(setmealDto);
+
+        //清理所有套餐的缓存数据
+        //Set keys = redisTemplate.keys("setmeal_*"); //获取所有以dish_xxx开头的key
+        //redisTemplate.delete(keys); //删除这些key
+
+        //清理某个分类下面的套餐缓存数据
+        String key = "setmeal_" + setmealDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
+
         return R.success("套餐修改成功");
     }
 

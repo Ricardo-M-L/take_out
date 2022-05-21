@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Map;
@@ -70,7 +69,8 @@ public class UserController {
      */
     @PostMapping("/login")
     public R<User> login(@RequestBody Map map, HttpSession session) {
-       log.info(map.toString());
+
+        log.info(map.toString());
         //获取页面的手机号
         String phone = map.get("phone").toString();
         //判断当前手机号对应的用户是否为新用户
@@ -85,9 +85,8 @@ public class UserController {
             newUser.setStatus(1);
             userService.save(newUser);
             session.setAttribute("userId",newUser.getId());
-            return R.success(newUser);
+            return R.success(user);
         }
-
         //否则说明是老用户，则获取页面的验证码,并判断其是否为空
         String code = map.get("code").toString();
         if(StringUtils.isNotEmpty(code)) {
@@ -102,7 +101,7 @@ public class UserController {
                 session.setAttribute("userId",user.getId());
 
                 //从Redis中删除缓存的验证码
-                redisTemplate.delete(phone);
+                redisTemplate.delete("phoneCode");
                 
                 return R.success(user);
             }
