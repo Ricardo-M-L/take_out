@@ -6,6 +6,8 @@ import com.yj.reggie.entity.User;
 import com.yj.reggie.service.UserService;
 import com.yj.reggie.utils.SMSUtils;
 import com.yj.reggie.utils.ValidateCodeUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +21,13 @@ import javax.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 用户管理
+ */
 @Slf4j
 @RestController
 @RequestMapping("/user")
+@Api(tags ={"用户接口相关"})
 public class UserController {
 
     @Autowired
@@ -37,6 +43,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/sendMsg")
+    @ApiOperation("发送手机短信验证码接口")
     public R<String> sendMsg(@RequestBody User user,HttpSession session) {
         //获取手机号
         String phone = user.getPhone();
@@ -68,6 +75,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
+    @ApiOperation("移动端用户登录接口")
     public R<User> login(@RequestBody Map map, HttpSession session) {
 
         log.info(map.toString());
