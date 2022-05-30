@@ -6,6 +6,8 @@ import com.yj.reggie.dto.SetmealDto;
 import com.yj.reggie.entity.Dish;
 import com.yj.reggie.entity.Setmeal;
 import com.yj.reggie.service.SetmealService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -14,13 +16,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-
 /**
  * 套餐管理
  */
 @Slf4j
 @RestController
 @RequestMapping("/setmeal")
+@Api(tags ={"套餐接口相关"})
 public class SetmealController {
 
     @Autowired
@@ -29,13 +31,13 @@ public class SetmealController {
     @Autowired
     private RedisTemplate redisTemplate;
 
-
     /**
      * 新增套餐
      * @param setmealDto
      */
     @CacheEvict(value = "setmealCache",key ="'setmeal_' + #setmealDto.getCategoryId() + '_1'") //删除套餐对应分类下的所有套餐缓存
     @PostMapping
+    @ApiOperation("新增套餐接口")
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("新增套餐信息:{}",setmealDto);
         setmealService.saveWithDish(setmealDto);
@@ -51,6 +53,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/page")
+    @ApiOperation(value = "套餐分页查询接口")
     public R<Page> page(int page, int pageSize, String name) {
         Page<SetmealDto> setmealDtoPage = setmealService.page(page, pageSize, name);
         return R.success(setmealDtoPage);
@@ -62,6 +65,7 @@ public class SetmealController {
      */
     @CacheEvict(value = "setmealCache",allEntries = true) //删除setmealCache这个缓存空间里所有数据
     @PostMapping("/status/{status}")
+    @ApiOperation(value = "套餐批量(或单个)停起售接口")
     public R<String> updateStatus(@PathVariable int status, @RequestParam("ids") Long[] id) {
         log.info("status:{}", status);
         log.info("ids:{}", id);
@@ -76,6 +80,7 @@ public class SetmealController {
      * @return
      */
     @DeleteMapping
+    @ApiOperation(value = "套餐删除接口")
     public R<String> delete(@RequestParam("ids") Long[] id){
         log.info("id:{}",id);
         setmealService.removeWithDish(id);
@@ -87,6 +92,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/{id}")
+    @ApiOperation(value = "根据id查询套餐和对应的菜品信息接口")
     public R<SetmealDto> get(@PathVariable Long id) {
         SetmealDto setmealDto = setmealService.get(id);
         return R.success(setmealDto);
@@ -99,6 +105,7 @@ public class SetmealController {
      */
     @CacheEvict(value = "setmealCache",key ="'setmeal_' + #setmealDto.getCategoryId() + '_1'") //删除套餐对应分类下的所有套餐缓存
     @PutMapping
+    @ApiOperation(value = "修改套餐接口")
     public R<String> update(@RequestBody SetmealDto setmealDto) {
         log.info(setmealDto.toString());
         setmealService.updateWithDish(setmealDto);
@@ -113,6 +120,7 @@ public class SetmealController {
      */
     @Cacheable(value = "setmealCache", key = "'setmeal_' + #setmeal.categoryId + '_' + #setmeal.status")
     @GetMapping("/list")
+    @ApiOperation(value = "套餐条件查询接口")
     public R<List<Setmeal>> list(Setmeal setmeal) {
         List<Setmeal> list = setmealService.list(setmeal);
         return R.success(list);
@@ -124,6 +132,7 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/dish/{id}")
+    @ApiOperation("用户界面点击套餐, 展示其中的菜品数据接口")
     public R<List<Dish>> getSetmealDish(@PathVariable Long id) {
 
         List<Dish> dishList = setmealService.getSetmealDish(id);

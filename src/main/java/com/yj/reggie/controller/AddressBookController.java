@@ -4,6 +4,8 @@ import com.yj.reggie.common.BaseContext;
 import com.yj.reggie.common.R;
 import com.yj.reggie.entity.AddressBook;
 import com.yj.reggie.service.AddressBookService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/addressBook")
+@Api(tags ={"地址簿接口相关"})
 public class AddressBookController {
 
     @Autowired
@@ -25,6 +28,7 @@ public class AddressBookController {
      * 新增一个地址
      */
     @PostMapping
+    @ApiOperation("新增地址接口")
     public R<AddressBook> save(@RequestBody AddressBook addressBook) {
         addressBook.setUserId(BaseContext.getCurrentId()); //给地址设置当前用户id
         log.info("addressBook:{}", addressBook);
@@ -36,6 +40,7 @@ public class AddressBookController {
      * 设置默认地址
      */
     @PutMapping("default")
+    @ApiOperation("设置默认地址接口")
     public R<AddressBook> setDefault(@RequestBody AddressBook addressBook) {
 
         AddressBook address = addressBookService.setDefault(addressBook);
@@ -46,6 +51,7 @@ public class AddressBookController {
      * 根据id查询地址
      */
     @GetMapping("/{id}")
+    @ApiOperation("根据id查询地址接口")
     public R get(@PathVariable Long id) {
         AddressBook addressBook = addressBookService.getById(id);
         if (addressBook != null) {
@@ -59,6 +65,7 @@ public class AddressBookController {
      * 查询默认地址
      */
     @GetMapping("default")
+    @ApiOperation("查询默认地址接口")
     public R<AddressBook> getDefault() {
         AddressBook defaultAddressBook = addressBookService.getDefault();
 
@@ -73,6 +80,7 @@ public class AddressBookController {
      * 查询指定用户的全部地址
      */
     @GetMapping("/list")
+    @ApiOperation("查询指定用户的全部地址接口")
     public R<List<AddressBook>> list(AddressBook addressBook) {
 
         List<AddressBook> list = addressBookService.list(addressBook);

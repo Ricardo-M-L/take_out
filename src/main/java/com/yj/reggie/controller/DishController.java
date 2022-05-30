@@ -4,22 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yj.reggie.common.R;
 import com.yj.reggie.dto.DishDto;
-import com.yj.reggie.entity.Category;
 import com.yj.reggie.entity.Dish;
-import com.yj.reggie.entity.Employee;
-import com.yj.reggie.service.CategoryService;
-import com.yj.reggie.service.DishFlavorService;
 import com.yj.reggie.service.DishService;
-import lombok.Getter;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
-
 import java.util.List;
-import java.util.Set;
+
 
 /**
  * 菜品管理
@@ -27,6 +21,7 @@ import java.util.Set;
 @Slf4j
 @RestController
 @RequestMapping("/dish")
+@Api(tags ={"菜品接口相关"})
 public class DishController {
 
     @Autowired
@@ -41,6 +36,7 @@ public class DishController {
      * @return
      */
     @PostMapping
+    @ApiOperation("新增菜品接口")
     public R<String> save(@RequestBody DishDto dishDto) {
         log.info(dishDto.toString());
         dishService.saveWithFlavor(dishDto);
@@ -64,6 +60,7 @@ public class DishController {
      * @return
      */
     @GetMapping("/page")
+    @ApiOperation(value = "菜品分页查询接口")
     public R<Page> page(int page, int pageSize, String name) {
         Page<DishDto> dishDtoPage = dishService.page(page, pageSize, name);
         return R.success(dishDtoPage);
@@ -74,6 +71,7 @@ public class DishController {
      * @return
      */
     @PostMapping("/status/{status}")
+    @ApiOperation(value = "菜品批量(或单个)停起售接口")
     public R<String> updateStatus(@PathVariable int status, Long[] id) {
         log.info("status:{}", status);
         log.info("ids:{}", id);
@@ -88,6 +86,7 @@ public class DishController {
      * @return
      */
     @DeleteMapping
+    @ApiOperation(value = "菜品删除接口")
     public R<String> delete(Long[] id) {
         dishService.deleteWithFlavors(id);
         return R.success("菜品删除成功");
@@ -99,6 +98,7 @@ public class DishController {
      * @return
      */
     @GetMapping("/{id}")
+    @ApiOperation(value = "菜品及对应的口味信息id查询接口")
     public R<DishDto> get(@PathVariable Long id) {
         DishDto dishDto = dishService.getByIdWithFlavor(id);
         return R.success(dishDto);
@@ -110,6 +110,7 @@ public class DishController {
      * @return
      */
     @PutMapping
+    @ApiOperation(value = "修改菜品接口")
     public R<String> update(@RequestBody DishDto dishDto) {
         log.info(dishDto.toString());
         dishService.updateWithFlavor(dishDto);
@@ -136,6 +137,7 @@ public class DishController {
         return R.success(list);
     }*/
     @GetMapping("/list")
+    @ApiOperation(value = "菜品条件查询接口")
     public R<List<DishDto>> list(Dish dish) {
         List<DishDto> list = dishService.list(dish);
         return R.success(list);
