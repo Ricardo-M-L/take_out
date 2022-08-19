@@ -28,4 +28,4 @@ mybatis-plus:
       id-type: ASSIGN_ID
 
 reggie:
-  path: E:\公司学习文件\java开发\黑马程序员java\第5阶段—企业级项目实战\7、黑马程序员瑞吉外卖平台实战开发\1 瑞吉外卖项目\自己的工程\take_out\img\
+  path: E:\img\
